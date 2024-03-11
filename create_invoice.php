@@ -34,8 +34,7 @@ $clientNameErr = $invoiceDateErr = $dueDateErr = $billAmountErr = "";
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validate form fields
-    // Validation code here...
+    
 }
 
 ?>

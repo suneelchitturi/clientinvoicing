@@ -2,126 +2,120 @@
 include 'header.php';
 include 'db.php';
 
-// Check if invoice ID is provided in the URL
-if(isset($_GET['id'])) {
-    $invoiceId = $_GET['id'];
+// Retrieve invoice details to edit
+$invoiceID = $_GET['id'];
+$sql = "SELECT * FROM invoices WHERE InvoiceID=$invoiceID";
+$result = $conn->query($sql);
 
-    // Fetch invoice details from the database
-    $sql = "SELECT * FROM clientinvoice WHERE InvoiceId = $invoiceId";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $invoice = $result->fetch_assoc();
-    } else {
-        echo "Invoice not found.";
-        exit();
-    }
+if ($result->num_rows > 0) {
+    $invoice = $result->fetch_assoc(); // Fetch invoice details
 } else {
-    echo "Invoice ID is missing.";
-    exit();
+    echo "Invoice not found";
 }
 
-// Check if form is submitted
+// Handle form submission for updating invoice
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Sanitize and validate input data
-    $clientName = $_POST["clientName"];
-    $invoiceDate = $_POST["invoiceDate"];
-    $dueDate = $_POST["dueDate"];
-    $billAmount = $_POST["billAmount"];
-    $discounts = $_POST["discounts"];
-    $totalAmount = $_POST["totalAmount"];
-    $paymentDate = $_POST["paymentDate"];
+    // Retrieve form input values
+    $clientName = $_POST['clientName'];
+    $invoiceDate = $_POST['invoiceDate'];
+    $dueDate = $_POST['dueDate'];
+    $discountPercentage = $_POST['discountPercentage'];
+    $totalAmount = $_POST['totalAmount'];
 
-    // Update the invoice record in the database
-    $sql = "UPDATE clientinvoice SET ClientName = '$clientName', InvoiceDate = '$invoiceDate', DueDate = '$dueDate', BillAmount = '$billAmount', Discounts = '$discounts', TotalAmount = '$totalPaidAmount
-    if (mysqli_query($conn, $sql)) {
+    // Prepare and execute SQL query to update invoice data
+    $sql = "UPDATE invoices SET ClientName=?, InvoiceDate=?, DueDate=?, DiscountPercentage=?, TotalAmount=? WHERE InvoiceID=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssdi", $clientName, $invoiceDate, $dueDate, $discountPercentage, $totalAmount, $invoiceID);
+
+    if ($stmt->execute()) {
         echo "Invoice updated successfully.";
     } else {
-        echo "Error updating invoice: " . mysqli_error($conn);
+        echo "Error: " . $sql . "<br>" . $conn->error;
     }
-}
 
+    $stmt->close();
+}
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Invoice</title>
+<div class="container">
+    <h2>Edit Invoice</h2>
     <style>
-        /* Your CSS styles */
+        /* CSS styles */
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 20px;
         }
 
-        h1 {
-            text-align: center;
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        form {
-            width: 50%;
-            margin: 0 auto;
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
         }
 
         label {
-            display: block;
-            margin-bottom: 5px;
+            font-weight: bold;
         }
 
         input[type="text"],
         input[type="date"],
-        input[type="submit"] {
+        input[type="number"] {
             width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
+            padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 5px;
             box-sizing: border-box;
         }
 
-        input[type="submit"] {
+        .btn-primary {
             background-color: #007bff;
             color: #fff;
             border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
         }
 
-        input[type="submit"]:hover {
+        .btn-primary:hover {
             background-color: #0056b3;
         }
     </style>
-</head>
-<body>
-    <h1>Edit Invoice</h1>
-    <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) . '?id=' . $invoiceId; ?>">
-        <!-- Input fields pre-filled with invoice data -->
-        <label for="clientId">Client Name:</label>
-        <input type="text" name="clientName" id="clientName" value="<?php echo $invoice['ClientName']; ?>" required><br><br>
-
-        <label for="invoiceDate">Invoice Date:</label>
-        <input type="date" name="invoiceDate" id="invoiceDate" value="<?php echo $invoice['InvoiceDate']; ?>" required><br><br>
-
-        <label for="dueDate">Due Date:</label>
-        <input type="date" name="dueDate" id="dueDate" value="<?php echo $invoice['DueDate']; ?>" required><br><br>
-
-        <label for="billAmount">Bill Amount:</label>
-        <input type="text" name="billAmount" id="billAmount" value="<?php echo $invoice['BillAmount']; ?>" required><br><br>
-
-        <label for="discounts">Discounts:</label>
-        <input type="text" name="discounts" id="discounts" value="<?php echo $invoice['Discounts']; ?>"><br><br>
-
-        <label for="totalAmount">Total Amount:</label>
-        <input type="text" name="totalAmount" id="totalAmount" value="<?php echo $invoice['TotalAmount']; ?>"><br><br>
-
-        <label for="paymentDate">Payment Date:</label>
-        <input type="date" name="paymentDate" id="paymentDate" value="<?php echo $invoice['PaymentDate']; ?>"><br><br>
-
-        <input type="submit" value="Update Invoice">
+    <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) . '?id=' . $invoiceID; ?>">
+        <div class="form-group">
+            <label for="clientName">Client Name:</label>
+            <input type="text" class="form-control" id="clientName" name="clientName" value="<?php echo $invoice['ClientName']; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="invoiceDate">Invoice Date:</label>
+            <input type="date" class="form-control" id="invoiceDate" name="invoiceDate" value="<?php echo $invoice['InvoiceDate']; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="dueDate">Due Date:</label>
+            <input type="date" class="form-control" id="dueDate" name="dueDate" value="<?php echo $invoice['DueDate']; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="discountPercentage">Discount Percentage:</label>
+            <input type="number" class="form-control" id="discountPercentage" name="discountPercentage" value="<?php echo $invoice['DiscountPercentage']; ?>">
+        </div>
+        <div class="form-group">
+            <label for="totalAmount">Total Amount:</label>
+            <input type="number" class="form-control" id="totalAmount" name="totalAmount" value="<?php echo $invoice['TotalAmount']; ?>" readonly>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Invoice</button>
     </form>
-</body>
-</html>
+</div>
 
 <?php include 'footer.php'; ?>

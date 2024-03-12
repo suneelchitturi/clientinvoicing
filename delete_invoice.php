@@ -1,38 +1,27 @@
 <?php
-include 'db.php'; // Include database connection file
+include 'header.php';
+include 'db.php';
 
-// Check if invoice ID is provided and is a valid number
-if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["id"]) && is_numeric($_GET["id"])) {
-    $invoiceId = $_GET["id"];
+// Check if invoice ID is provided
+if(isset($_GET['id'])) {
+    // Retrieve invoice ID from URL parameter
+    $invoiceID = $_GET['id'];
 
-    // Prepare a delete statement
-    $sql = "DELETE FROM clientinvoice WHERE InvoiceId = ?";
-
-    // Prepare the statement
+    // Prepare and execute SQL query to delete the invoice
+    $sql = "DELETE FROM invoices WHERE InvoiceID=?";
     $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $invoiceID);
 
-    if ($stmt) {
-        // Bind parameters
-        $stmt->bind_param("i", $invoiceId);
-
-        // Attempt to execute the prepared statement
-        if ($stmt->execute()) {
-            // Redirect to view_invoices.php with success message
-            header("Location: view_invoices.php?delete=success");
-            exit();
-        } else {
-            // Redirect to view_invoices.php with error message
-            header("Location: view_invoices.php?delete=error");
-            exit();
-        }
+    if ($stmt->execute()) {
+        echo "Invoice deleted successfully.";
     } else {
-        // Redirect to view_invoices.php with error message
-        header("Location: view_invoices.php?delete=error");
-        exit();
+        echo "Error: " . $sql . "<br>" . $conn->error;
     }
+
+    $stmt->close();
 } else {
-    // Redirect to view_invoices.php if no valid invoice ID is provided
-    header("Location: view_invoices.php");
-    exit();
+    echo "Invoice ID not provided.";
 }
+
+include 'footer.php';
 ?>

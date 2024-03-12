@@ -1,116 +1,88 @@
-<!-- view_invoices.php -->
-<?php 
-include 'header.php'; 
-include 'db.php'; // Include database connection file
-
-// Retrieve list of invoices from the database
-$sql = "SELECT * FROM clientinvoice";
-$result = $conn->query($sql);
+<?php
+include 'header.php';
+include 'db.php';
 ?>
 
-<div class="container">
-    <h2>View Invoices</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoices</title>
     <style>
-        /* style.css */
+        /* CSS styles */
+        table {
+            width: 80%;
+            border-collapse: middle;
+        }
+        th, td {
+            padding: 2px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        td a {
+            display: inline-block;
+            padding: 2px 5px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #007bff;
+            border-radius: 1px;
+            transition: background-color 0.3s;
+        }
+        td a:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
 
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+<?php
+$sql = "SELECT * FROM invoices";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    echo "<h2>Invoices</h2>";
+    echo "<table border='1'>
+    <tr>
+    <th>Invoice ID</th>
+    <th>Client Name</th>
+    <th>Invoice Date</th>
+    <th>Due Date</th>
+    <th>DiscountPercentage</th>
+    <th>Total Amount</th>
+    <th>Total Paid</th>
+    <th>Actions</th>
+    </tr>";
+
+    while ($row = $result->fetch_assoc()) {
+        echo "<tr>";
+        echo "<td>" . $row['InvoiceID'] . "</td>";
+        echo "<td>" . $row['ClientName'] . "</td>";
+        echo "<td>" . $row['InvoiceDate'] . "</td>";
+        echo "<td>" . $row['DueDate'] . "</td>";
+        echo "<td>" . $row['DiscountPercentage'] . "</td>";
+        echo "<td>" . $row['TotalAmount'] . "</td>";
+        echo "<td>" . $row['Total Paid'] . "</td>";
+        echo "<td>
+                <a href='view_invoices.php?id=" . $row['InvoiceID'] . "'>View</a>
+                <a href='edit_invoice.php?id=" . $row['InvoiceID'] . "'>Edit</a>
+                <a href='delete_invoice.php?id=" . $row['InvoiceID'] . "'>Delete</a>
+              </td>";
+        echo "</tr>";
+    }
+    echo "</table>";
+} else {
+    echo "0 results";
 }
+$conn->close();
+?>
 
-.container {
-    width: 80%;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.table th,
-.table td {
-    padding: 8px;
-    border: 1px solid #ddd;
-}
-
-.table th {
-    background-color: #f2f2f2;
-}
-
-.table tbody tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-.table tbody tr:hover {
-    background-color: #ddd;
-}
-
-.btn {
-    padding: 8px 12px;
-    text-decoration: none;
-    border-radius: 4px;
-}
-
-.btn-primary {
-    background-color: #007bff;
-    color: #fff;
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    color: #fff;
-}
-
-.btn-primary:hover,
-.btn-danger:hover {
-    opacity: 0.8;
-}
-</style>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Invoice ID</th>
-                <th>Client Name</th>
-                <th>Invoice Date</th>
-                <th>Due Date</th>
-                <th>Status</th>
-                <th>Bill Amount</th>
-                <th>Total Amount</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php 
-            if ($result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    echo "<tr>";
-                    echo "<td>" . $row["InvoiceId"] . "</td>";
-                    echo "<td>" . $row["ClientName"] . "</td>";
-                    echo "<td>" . $row["InvoiceDate"] . "</td>";
-                    echo "<td>" . $row["DueDate"] . "</td>";
-                    echo "<td>" . $row["Status"] . "</td>";
-                    echo "<td>" . $row["BillAmount"] . "</td>";
-                    echo "<td>" . $row["TotalAmount"] . "</td>";
-                    echo "<td>";
-                    echo "<a href='edit_invoice.php?id=" . $row["InvoiceId"] . "' class='btn btn-primary'>Edit</a>";
-                    echo "<a href='delete_invoice.php?id=" . $row["InvoiceId"] . "' class='btn btn-danger ml-2'>Delete</a>";
-                    echo "</td>";
-                    echo "</tr>";
-                }
-            } else {
-                echo "<tr><td colspan='8'>No invoices found</td></tr>";
-            }
-            ?>
-        </tbody>
-    </table>
-</div>
-
-<?php include 'footer.php'; ?>
+</body>
+</html>

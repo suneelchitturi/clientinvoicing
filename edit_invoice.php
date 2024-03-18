@@ -4,7 +4,7 @@ include 'db.php';
 
 // Retrieve invoice details to edit
 $invoiceID = $_GET['id'];
-$sql = "SELECT * FROM invoices WHERE InvoiceID=$invoiceID";
+$sql = "SELECT i.*, ci.`TotalPaid` FROM invoices i LEFT JOIN clientinvoice ci ON i.`InvoiceID` = ci.`InvoiceID` WHERE i.`InvoiceID` = $invoiceID";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
@@ -21,6 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $dueDate = $_POST['dueDate'];
     $discountPercentage = $_POST['discountPercentage'];
     $totalAmount = $_POST['totalAmount'];
+    $totalPaid = $_POST['totalPaid'];
 
     // Prepare and execute SQL query to update invoice data
     $sql = "UPDATE invoices SET ClientName=?, InvoiceDate=?, DueDate=?, DiscountPercentage=?, TotalAmount=? WHERE InvoiceID=?";
@@ -39,60 +40,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <div class="container">
     <h2>Edit Invoice</h2>
-    <style>
-        /* CSS styles */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            font-weight: bold;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        input[type="number"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-    </style>
     <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) . '?id=' . $invoiceID; ?>">
         <div class="form-group">
             <label for="clientName">Client Name:</label>
@@ -114,8 +61,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <label for="totalAmount">Total Amount:</label>
             <input type="number" class="form-control" id="totalAmount" name="totalAmount" value="<?php echo $invoice['TotalAmount']; ?>" readonly>
         </div>
+        <div class="form-group">
+            <label for="totalPaid">Total Paid:</label>
+            <input type="number" class="form-control" id="totalPaid" name="totalPaid" value="<?php echo $invoice['TotalPaid']; ?>">
+        </div>
         <button type="submit" class="btn btn-primary">Update Invoice</button>
     </form>
 </div>
+<style>
+    .container {
+        margin-top: 50px;
+        text-align: center;
+    }
+
+    h2 {
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    button[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+</style>
 
 <?php include 'footer.php'; ?>

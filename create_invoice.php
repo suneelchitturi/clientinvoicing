@@ -1,6 +1,6 @@
-<?php 
-include 'header.php'; 
-include 'db.php'; // Include database connection file
+<?php
+include 'header.php';
+include 'db.php';
 
 // Fetch client names and due dates from the database
 $clientData = array(); // Initialize an empty array to store client data
@@ -34,7 +34,30 @@ $clientNameErr = $invoiceDateErr = $dueDateErr = $billAmountErr = "";
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
+    // Example validation, you can adjust as needed
+    if (empty($_POST['clientName']) || empty($_POST['invoiceDate']) || empty($_POST['dueDate']) || empty($_POST['totalAmount'])) {
+       echo "All fields are required.";
+    } else {
+        // Retrieve form input values
+        $clientName = $_POST['clientName'];
+        $invoiceDate = $_POST['invoiceDate'];
+        $dueDate = $_POST['dueDate'];
+        $discountPercentage = $_POST['discountPercentage'];
+        $totalAmount = $_POST['totalAmount'];
+
+        // Prepare and execute SQL query to insert invoice data
+        $sql = "INSERT INTO invoices (ClientName, InvoiceDate, DueDate, DiscountPercentage, TotalAmount) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssssd", $clientName, $invoiceDate, $dueDate, $discountPercentage, $totalAmount);
+
+        if ($stmt->execute()) {
+            echo "Invoice saved successfully.";
+        } else {
+            echo "Error: " . $sql . "<br>" . $conn->error;
+        }
+
+        $stmt->close();
+    }
 }
 
 ?>
@@ -154,6 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     <?php foreach ($employeeData as $employee => $rate): ?>
                                         <option value="<?php echo $employee; ?>" data-rate="<?php echo $rate; ?>"><?php echo $employee; ?></option>
                                     <?php endforeach; ?>
+                                      
                                 </select>
                             </td>
                             <td><input type="number" class="form-control hours" name="hours[]" value=""></td>
@@ -161,13 +185,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <td><input type="text" class="form-control description" name="description[]" value=""></td>
                             <td><input type="number" class="form-control billAmount" name="billAmount[]" value="" readonly></td>
                         </tr>
-                    <?php endfor; ?>
+                    <?php endfor; ?>  
                 </tbody>
             </table>
             <!-- Add row button -->
             <button type="button" class="btn btn-primary" id="addRowBtn">Add Row</button>
             <!-- Discount in percentage row -->
-            <tr>
+            <tr>        
                 <td>Discount (%)</td>
                 <td colspan="3"></td>
                 <td><input type="number" class="form-control discountPercentage" name="discountPercentage" value="0"></td>
@@ -178,11 +202,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <td colspan="3"></td>
                 <td><input type="number" class="form-control totalAmount" name="totalAmount" value="" readonly></td>
             </tr>
-        </div>
+           
+</div>
+      
 
         <div class="form-group">
             <button type="submit" class="btn btn-primary">Submit</button>
         </div>
+       
+        
+</div>
     </form>
 </div>
 
@@ -289,6 +318,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             document.getElementById('addRowBtn').style.display = 'none'; // Hide initial add row button
         }
     });
+      // Function to calculate due amount
+      function calculateDueAmount() {
+        var totalAmount = parseFloat(document.querySelector('.totalAmount').value);
+        var totalPaid = parseFloat(document.querySelector('#totalPaid').value);
+
+        // Calculate due amount
+        var dueAmount = totalAmount - totalPaid;
+
+        // Update due amount field
+        var dueAmountInput = document.querySelector('#dueAmount');
+        dueAmountInput.value = isNaN(dueAmount) ? '' : dueAmount.toFixed(2);
+    }
+
+    // Calculate due amount when total paid field changes
+    document.getElementById('totalPaid').addEventListener('input', calculateDueAmount);
+
+    // Calculate due amount initially
+    calculateDueAmount();
+    function printInvoice(invoiceID) {
+        window.open("print_invoice.php?id=" + invoiceID, "_blank");
+    }
 </script>
 
 <?php include 'footer.php'; ?>
